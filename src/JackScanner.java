@@ -1,5 +1,7 @@
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -45,4 +47,41 @@ public class JackScanner {
     private void readch() {
         peek = (pos < input.length()) ? input.charAt(pos++) : '\0';
     }
+
+    public Token scan() {
+
+        
+        while (peek == ' ' || peek == '\t' || peek == '\r' || peek == '\n') {
+            readch();
+        }
+        
+        if (Character.isDigit(peek)) return scanNumber();
+        
+        if (peek == '\0') return new Token(TokenType.EOF, "");
+
+        
+        throw new RuntimeException("Token não reconhecido: '" + peek + "'");
+    }
+
+    private Token scanNumber() {
+        int v = 0;
+        do {
+            v = 10 * v + (peek - '0');
+            readch();
+        } while (Character.isDigit(peek));
+
+        return new Token(TokenType.NUMBER, String.valueOf(v));
+    }
+    
+    public List<Token> tokenize() {
+        List<Token> tokens = new ArrayList<>();
+        Token t;
+        do {
+            t = scan();
+            tokens.add(t);
+        } while (t.tag != TokenType.EOF);
+        return tokens;
+    }
+
+
 }
