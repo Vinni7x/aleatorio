@@ -84,6 +84,77 @@ public class JackScannerTest {
                 "Deveria ser keyword: " + kw);
         }
     }
+    
+    @Test
+    void testIdentificadorComUnderscore() {
+        JackScanner scanner = new JackScanner("minha_var");
+        List<Token> tokens = scanner.tokenize();
+
+        assertEquals(TokenType.IDENT, tokens.get(0).tag);
+        assertEquals("minha_var",     tokens.get(0).value);
+    }
+    
+    
+    @Test
+    void testSimbolosXml() {
+        
+        JackScanner scanner = new JackScanner("x + y;");
+        List<Token> tokens = scanner.tokenize();
+
+       
+        List<Token> semEof = tokens.stream()
+            .filter(t -> t.tag != TokenType.EOF)
+            .toList();
+
+        String[] esperado = {
+            "<identifier> x </identifier>",
+            "<symbol> + </symbol>",
+            "<identifier> y </identifier>",
+            "<symbol> ; </symbol>",
+        };
+
+        for (int i = 0; i < esperado.length; i++) {
+            assertEquals(esperado[i], semEof.get(i).toXML(),
+                "Token " + i + " não corresponde");
+        }
+    }
+
+    @Test
+    void testEscapeXml() {
+        
+        JackScanner scanner = new JackScanner("a < b");
+        List<Token> tokens = scanner.tokenize();
+
+        
+        Token lt = tokens.stream()
+            .filter(t -> t.value.equals("<"))
+            .findFirst()
+            .orElseThrow();
+
+        assertEquals("<symbol> &lt; </symbol>", lt.toXML());
+
+        
+        scanner = new JackScanner("a > b");
+        tokens  = scanner.tokenize();
+
+        Token gt = tokens.stream()
+            .filter(t -> t.value.equals(">"))
+            .findFirst()
+            .orElseThrow();
+
+        assertEquals("<symbol> &gt; </symbol>", gt.toXML());
+
+        
+        scanner = new JackScanner("a & b");
+        tokens  = scanner.tokenize();
+
+        Token amp = tokens.stream()
+            .filter(t -> t.value.equals("&"))
+            .findFirst()
+            .orElseThrow();
+
+        assertEquals("<symbol> &amp; </symbol>", amp.toXML());
+    }
 
 
 }
